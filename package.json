@@ -1,0 +1,13 @@
+{
+  "name": "my-pi-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "My personal Pi extensions, skills, prompts, and themes",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

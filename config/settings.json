@@ -1,0 +1,7 @@
+{
+  "httpProxy": "http://127.0.0.1:7897",
+  "packages": [
+    "npm:pi-codex-search",
+    "git:github.com/larsderidder/pi-browser@32b5baaf7ca0d6258b1d0841cff9c6c88aafff2b"
+  ]
+}

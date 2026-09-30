@@ -1,0 +1,7 @@
+{
+  "enabled": true,
+  "standaloneEnabled": false,
+  "searchContextSize": "medium",
+  "freshness": "live",
+  "batchSize": 5
+}
