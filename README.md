@@ -76,7 +76,19 @@ After setup, run `/reload`. On a new machine, sign in separately using `/login o
 
 Edits in Pi do not automatically sync back into this repository. Update the reviewed fragments here when you want to keep changes. Other files, including `AGENTS.md`, are not managed by this script.
 
-Run `npm test` for isolated setup tests (no real configuration or network access).
+## Visual review skill
+
+`skills/visual-review/` explains code changes using verified behavioral deltas, source anchors, and focused review questions. It chooses tables, annotated diffs, or diagrams according to the change; diagrams are optional. It does not edit your project or run tests by default.
+
+After `/reload`, try:
+
+```text
+/skill:visual-review Explain the changes in /path/to/project from <base> to <head>
+```
+
+For uncommitted changes, explicitly say whether to include staged, unstaged, and untracked files. Ask for SVG/HTML if desired; the skill can use a separately installed `archify` skill for rendering. Examples and a real-patch evaluation checklist are bundled under `skills/visual-review/references/`; effectiveness has not yet been evaluated on your projects.
+
+Run `npm test` for isolated setup and shared-conversation parser tests (no real configuration or network access).
 
 Never commit API keys, OAuth credentials, `auth.json`, session history, or other private runtime data. Review settings and model configuration for embedded secrets. `.gitignore` is a safeguard, not a secret scanner.
 
