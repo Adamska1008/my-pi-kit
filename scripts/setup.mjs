@@ -6,6 +6,8 @@ import { randomUUID } from 'node:crypto';
 import { isDeepStrictEqual } from 'node:util';
 import { spawnSync } from 'node:child_process';
 
+import { linkAgents } from './link-agents.mjs';
+
 const kitRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 
@@ -53,7 +55,7 @@ function packageId(entry, agentDir, home) {
   return source;
 }
 
-export function setup({ home = homedir(), agentDir = process.env.PI_CODING_AGENT_DIR || join(home, '.pi', 'agent'), root = kitRoot, dryRun = false, configOnly = false, log = console.log } = {}) {
+export function setup({ home = homedir(), agentDir = process.env.PI_CODING_AGENT_DIR || join(home, '.pi', 'agent'), root = kitRoot, dryRun = false, configOnly = false, linkInstructions = false, log = console.log } = {}) {
   agentDir = resolve(agentDir);
   root = resolve(root);
   const settingsPath = join(agentDir, 'settings.json');
@@ -85,7 +87,8 @@ export function setup({ home = homedir(), agentDir = process.env.PI_CODING_AGENT
       return [target, existing, merge(existing, readObject(join(root, 'config', name)))];
     }),
   ];
-  // Parse and prepare every target before writing anything. Never read auth.json.
+  // Validate JSON before linking; link failures leave JSON untouched. Never read auth.json.
+  if (linkInstructions) linkAgents({ root, home, agentDir, dryRun, log });
   for (const [path, before, after] of targets) {
     if (isDeepStrictEqual(before, after)) { log(`Unchanged: ${path}`); continue; }
     log(`${dryRun ? 'Would write' : 'Writing'}: ${path}`);
@@ -115,8 +118,8 @@ export function setup({ home = homedir(), agentDir = process.env.PI_CODING_AGENT
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const args = process.argv.slice(2);
   try {
-    for (const arg of args) if (!['--dry-run', '--config-only'].includes(arg)) throw new Error(`Unknown option: ${arg}`);
-    setup({ dryRun: args.includes('--dry-run'), configOnly: args.includes('--config-only') });
+    for (const arg of args) if (!['--dry-run', '--config-only', '--link-agents'].includes(arg)) throw new Error(`Unknown option: ${arg}`);
+    setup({ dryRun: args.includes('--dry-run'), configOnly: args.includes('--config-only'), linkInstructions: args.includes('--link-agents') });
   } catch (error) {
     console.error(`Setup failed: ${error.message}`);
     process.exitCode = 1;

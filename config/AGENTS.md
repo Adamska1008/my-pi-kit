@@ -1,0 +1,19 @@
+- When reporting information to me, be extremly concise and sacrifice grammar for the sake of concision.
+
+## Incremental changes and human review
+
+- Regardless of request size, the normal budget for each review batch is 200 changed lines or fewer, not 300. Exceed 200 only when a single independently complete, testable feature genuinely cannot fit within 200 lines and cannot be split into smaller coherent increments; explain why the exception is necessary. Even then, the batch must remain strictly below 300 changed lines: 300 is a hard boundary, never an ordinary target or an allowance for bundling extra work. Count additions plus deletions across all files, including tests, configuration, and documentation; do not treat individual tool calls or files as separate batches.
+- Split larger requests into small, independently complete, testable increments. Each batch must deliver a coherent unit, not unfinished scaffolding or broken intermediate code. If no such increment fits the limit, stop and ask the user how to proceed rather than exceeding it.
+- Validate each batch with relevant tests/checks where possible; report what ran, results, and any unverified behavior.
+- After completing one batch, summarize the changes and validation, then stop all further operations and wait for explicit human review approval before starting another batch. Do not automatically continue through the remaining request.
+
+## Personal Pi customizations
+
+- My Pi kit repository is `~/codes/my-pi-kit` (Windows: `C:/Users/dell/codes/my-pi-kit`). Use it as the source of truth for my custom Pi extensions and portable configuration. Read its `README.md` before modifying Pi customizations.
+- The kit is installed as a local Pi package: resources load directly from the checkout. Put extensions in `extensions/`, skills in `skills/`, prompt templates in `prompts/`, and themes in `themes/`. Do not edit Pi's installed release files or third-party installed package code to customize behavior.
+- `config/` and `scripts/setup.mjs` are our own conventions, not automatic Pi package features. Keep reusable, non-secret configuration changes in the kit as well as applying them to the active configuration when requested.
+- Setup manages `config/settings.json`, `config/keybindings.json`, and `config/pi-codex-search.json`, merging into personal configuration with backups. Opt-in `--link-agents` also links global instruction paths to `config/AGENTS.md`, backing up replaced files/links without merging their contents. Read `scripts/setup.mjs` and `scripts/link-agents.mjs` before extending setup.
+- From the kit: `npm test` runs isolated tests; `npm run setup -- --dry-run` previews; `npm run setup -- --config-only` applies configuration without package updates; `npm run setup` also reconciles ALL configured packages via `pi update --extensions` (unpinned packages may update).
+- After changing Pi resources or instructions, ask me to run `/reload`; do not claim a reload happened unless confirmed. Local kit edits need no reinstall.
+- Global instructions are maintained in `~/codes/my-pi-kit/config/AGENTS.md`. Both `~/.codex/AGENTS.md` and `~/.pi/agent/AGENTS.md` link directly to this source (Pi destination honors `PI_CODING_AGENT_DIR`). Edit the kit source; do not replace the links. Restore with `npm run setup -- --config-only --link-agents`; preview by adding `--dry-run`. Keep these global rules portable and non-secret.
+- Never put credentials, `auth.json`, API keys, session history, or private runtime data in the kit. Review configuration before committing. Do not commit or push unless requested.
