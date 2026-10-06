@@ -9,7 +9,7 @@
  * Native Windows suppresses notifications when the hosting terminal process is foreground.
  */
 
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -58,15 +58,53 @@ async function notify(title: string, body: string): Promise<void> {
 	}
 }
 
-export default function (pi: ExtensionAPI) {
+const preferenceType = "my-pi-kit:notify";
+
+function isEnabled(ctx: ExtensionContext): boolean {
+	const sessionId = ctx.sessionManager.getSessionId();
+	// This is a session-wide preference, deliberately not branch-sensitive.
+	// Ignore copied preferences in forks by checking the owning session ID.
+	const entries = ctx.sessionManager.getEntries();
+	for (let i = entries.length - 1; i >= 0; i--) {
+		const entry = entries[i];
+		if (entry.type !== "custom" || entry.customType !== preferenceType) continue;
+		const data = entry.data as { sessionId?: string; enabled?: boolean } | null;
+		if (data?.sessionId === sessionId && typeof data.enabled === "boolean") return data.enabled;
+	}
+	return true;
+}
+
+export function registerNotifications(pi: ExtensionAPI, send: typeof notify) {
+	pi.registerCommand("notify", {
+		description: "Session completion notifications: /notify [on|off|status]",
+		getArgumentCompletions: (prefix) => ["on", "off", "status"]
+			.filter((value) => value.startsWith(prefix)).map((value) => ({ value, label: value })),
+		handler: async (args, ctx) => {
+			const action = args.trim().toLowerCase() || "status";
+			if (!["on", "off", "status"].includes(action)) {
+				ctx.ui.notify("Usage: /notify [on|off|status]", "warning");
+				return;
+			}
+			if (action !== "status" && isEnabled(ctx) !== (action === "on")) {
+				pi.appendEntry(preferenceType, {
+					sessionId: ctx.sessionManager.getSessionId(), enabled: action === "on",
+				});
+			}
+			ctx.ui.notify(`Session completion notifications: ${isEnabled(ctx) ? "on" : "off"}`, "info");
+		},
+	});
 	// `agent_end` fires after each low-level run; Pi may still retry, compact,
 	// or continue with queued follow-ups. Notify only after the full run settles.
 	pi.on("agent_settled", async (_event, ctx) => {
-		if (ctx.mode !== "tui") return;
+		if (ctx.mode !== "tui" || !isEnabled(ctx)) return;
 		try {
-			await notify("Pi", "Ready for input");
+			await send("Pi", "Ready for input");
 		} catch (error) {
 			ctx.ui.notify(`Desktop notification failed: ${error instanceof Error ? error.message : String(error)}`, "warning");
 		}
 	});
+}
+
+export default function (pi: ExtensionAPI) {
+	registerNotifications(pi, notify);
 }

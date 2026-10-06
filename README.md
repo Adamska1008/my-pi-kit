@@ -33,6 +33,10 @@ pi install C:/Users/dell/codes/my-pi-kit
 
 Local packages load directly from the checkout without copying. After editing resources, run `/reload` in Pi.
 
+Use `/notify off` or `/notify on` to disable/enable completion notifications for the current session; `/notify` and `/notify status` show the setting. Default: on. Commands offer argument completion and do not call the model.
+
+Preferences are saved as custom session entries (excluded from model context), survive `/reload` and resume, and apply across all branches of that session, including `/tree` navigation. New sessions and forks default to on; switching sessions never carries another session's setting. Non-persisted sessions retain it only while in memory. Turning off prevents future notification dispatch, not delivery already in progress. The existing foreground suppression still applies when enabled.
+
 ## Personal settings
 
 Pi normally reads personal configuration from `~/.pi/agent/`. Installing this package does **not** apply files in `config/` automatically.
